@@ -34,7 +34,7 @@ jobs:
           script: |
             const branchName = process.env.BRANCH_NAME;
             const label = process.env.LABEL;
-            const { data: pr } = await github.pulls.create({
+            const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `${branchName} to master`,
@@ -43,7 +43,7 @@ jobs:
               body: `Automated PR from ${branchName} to master`
             });
             if (label !== 'other') {
-              await github.issues.addLabels({
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: pr.number,
@@ -58,7 +58,7 @@ jobs:
           script: |
             const branchName = process.env.BRANCH_NAME;
             const label = process.env.LABEL;
-            const { data: pr } = await github.pulls.create({
+            const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `${branchName} to develop`,
@@ -67,11 +67,10 @@ jobs:
               body: `Automated PR from ${branchName} to develop`
             });
             if (label !== 'other') {
-              await github.issues.addLabels({
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: pr.number,
                 labels: [label]
               });
             }
-
