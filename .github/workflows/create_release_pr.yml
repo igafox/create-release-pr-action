@@ -1,4 +1,4 @@
-name: create release pr
+name: create_release_pull_request
 
 on:
   push:
@@ -13,10 +13,13 @@ jobs:
       - name: Checkout current branch
         uses: actions/checkout@v3
 
-      - name: Extract branch name
+      - name: Get branch name
         run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
-      - name: Determine label
+      # ブランチ名から追加するラベルを環境変数に設定
+      # release/* -> LABEL=release
+      # hotfix/* -> LABEL=hotfix
+      - name: Get label
         id: get_label
         run: |
           if [[ "${BRANCH_NAME}" == release/* ]]; then
@@ -50,6 +53,7 @@ jobs:
                 labels: [label]
               });
             }
+          continue-on-error: true # PR作成に失敗してもジョブを失敗させない
 
       # developブランチ向けPR作成
       - name: Create PR to develop
@@ -74,3 +78,4 @@ jobs:
                 labels: [label]
               });
             }
+          continue-on-error: true # PR作成に失敗してもジョブを失敗させない
