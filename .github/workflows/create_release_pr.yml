@@ -1,0 +1,77 @@
+name: create release pr
+
+on:
+  push:
+    branches:
+      - 'release/*'
+      - 'hotfix/*'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+
+      - name: Extract branch name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Determine label
+        id: get_label
+        run: |
+          if [[ "${BRANCH_NAME}" == release/* ]]; then
+            echo "LABEL=release" >> $GITHUB_ENV
+          elif [[ "${BRANCH_NAME}" == hotfix/* ]]; then
+            echo "LABEL=hotfix" >> $GITHUB_ENV
+          else
+            echo "LABEL=other" >> $GITHUB_ENV
+          fi
+
+      # masterブランチ向けPR作成
+      - name: Create PR to master
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branchName = process.env.BRANCH_NAME;
+            const label = process.env.LABEL;
+            const { data: pr } = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `${branchName} to master`,
+              head: branchName,
+              base: 'master',
+              body: `Automated PR from ${branchName} to master`
+            });
+            if (label !== 'other') {
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: [label]
+              });
+            }
+
+      # developブランチ向けPR作成
+      - name: Create PR to develop
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branchName = process.env.BRANCH_NAME;
+            const label = process.env.LABEL;
+            const { data: pr } = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `${branchName} to develop`,
+              head: branchName,
+              base: 'develop',
+              body: `Automated PR from ${branchName} to develop`
+            });
+            if (label !== 'other') {
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: [label]
+              });
+            }
+
